@@ -271,7 +271,7 @@ begin
             end;
           end;
 
-          if WorkbinExist then begin
+          if WorkbinExist then if utf8s='gd' then begin
             ItemFlags := 0;
             MemoryStream1:=TMemoryStream.Create;
             try
