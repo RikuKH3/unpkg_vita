@@ -27,14 +27,15 @@ end;
 
 function HexToByte(HexStr: string): Byte;
 var
+  b: Byte;
   i: Integer;
 begin
-  HexStr:=UpperCase(HexStr);
   Result:=0;
   for i:=1 to Length(HexStr) do begin
-    case Ord(HexStr[i]) of
-      48..57: Result:=(Result shl 4)+(Byte(HexStr[i])-48);
-      65..70: Result:=(Result shl 4)+(Byte(HexStr[i])-55)
+    b:=Byte(HexStr[i]);
+    case b of
+      48..57: Result:=(Result shl 4)+(b-48);
+      65..70,97..102: Result:=(Result shl 4)+(b-55)
       else begin Result:=0; break end
     end;
   end;
