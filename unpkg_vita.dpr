@@ -27,21 +27,16 @@ end;
 
 function HexToByte(HexStr: string): Byte;
 var
-  i: Byte;
+  i: Integer;
 begin
   HexStr:=UpperCase(HexStr);
   Result:=0;
   for i:=1 to Length(HexStr) do begin
-    Result:=Result shl 4;
-    if HexStr[i] in ['0'..'9'] then
-      Result:=Result+(Byte(HexStr[i])-48)
-    else
-      if HexStr[i] in ['A'..'F'] then
-        Result:=Result+(Byte(HexStr[i])-55)
-      else begin
-        Result:=0;
-        Break;
-      end;
+    case Ord(HexStr[i]) of
+      48..57: Result:=(Result shl 4)+(Byte(HexStr[i])-48);
+      65..70: Result:=(Result shl 4)+(Byte(HexStr[i])-55)
+      else begin Result:=0; break end
+    end;
   end;
 end;
 
@@ -84,9 +79,10 @@ var
   FileStream1, FileStream2: TFileStream;
   MemoryStream1: TMemoryStream;
   PkgKey, CtrKey, WorkbinKey: array [0..15] of Byte;
-  ItemCnt, NumOfFiles, NameOffset, NameSize, ListPos, LongWord1, HeadSize: LongWord;
-  DataOffset, ItemOffset, ItemSize, Int641: Int64;
+  ItemCnt, NumOfFiles, NameOffset, NameSize, ListPos, HeadSize, SkuFlags, LongWord1: LongWord;
+  DataOffset, ItemOffset, ItemSize, SomeFlags, Int641: Int64;
   KeyType, ItemFlags: Byte;
+  LicenseFlags: Word;
   utf8s: UTF8String;
   WorkbinExist: Boolean;
   OutFolder, s, s2: String;
@@ -272,23 +268,35 @@ begin
           end;
 
           if WorkbinExist then if utf8s='gd' then begin
-            ItemFlags := 0;
+            SkuFlags := 0;
+            LicenseFlags := $200;
+            SomeFlags := 0;
             MemoryStream1:=TMemoryStream.Create;
             try
               if FileExists(OutFolder+'sce_sys\package\temp.bin') then begin
                 MemoryStream1.LoadFromFile(OutFolder+'sce_sys\package\temp.bin');
                 MemoryStream1.Position := $FC;
                 MemoryStream1.ReadBuffer(LongWord1, 4);
-                if LongWord1=$1000000 then ItemFlags:=3;
+                if LongWord1=$1000000 then begin
+                  SkuFlags := $3000000;
+                  MemoryStream1.Position := 6;
+                  MemoryStream1.ReadBuffer(LicenseFlags, 2);
+                  MemoryStream1.Position := $98;
+                  MemoryStream1.ReadBuffer(SomeFlags, 8);
+                end;
                 MemoryStream1.Clear;
               end;
-              MemoryStream1.WriteBuffer(RifHdr[0], $10);
+              MemoryStream1.WriteBuffer(RifHdr[0], 6);
+              MemoryStream1.WriteBuffer(LicenseFlags, 2);
+              MemoryStream1.WriteBuffer(RifHdr[8], 8);
               FileStream1.Position := $30;
               MemoryStream1.CopyFrom(FileStream1, $30);
               for i:=0 to 15 do MemoryStream1.WriteBuffer(ZeroByte, 1);
               MemoryStream1.WriteBuffer(WorkbinKey, $10);
-              for i:=0 to 158 do MemoryStream1.WriteBuffer(ZeroByte, 1);
-              MemoryStream1.WriteBuffer(ItemFlags, 1);
+              for i:=0 to 55 do MemoryStream1.WriteBuffer(ZeroByte, 1);
+              MemoryStream1.WriteBuffer(SomeFlags, 8);
+              for i:=0 to 91 do MemoryStream1.WriteBuffer(ZeroByte, 1);
+              MemoryStream1.WriteBuffer(SkuFlags, 4);
               for i:=0 to 255 do MemoryStream1.WriteBuffer(ZeroByte, 1);
               MemoryStream1.SaveToFile(OutFolder+'sce_sys\package\work.bin');
             finally MemoryStream1.Free end;
