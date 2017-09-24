@@ -27,15 +27,15 @@ end;
 
 function HexToByte(HexStr: string): Byte;
 var
-  b: Byte;
+  w: Word;
   i: Integer;
 begin
   Result:=0;
   for i:=1 to Length(HexStr) do begin
-    b:=Byte(HexStr[i]);
-    case b of
-      48..57: Result:=(Result shl 4)+(b-48);
-      65..70,97..102: Result:=(Result shl 4)+(b-55)
+    w:=Word(HexStr[i]);
+    case w of
+      48..57: Result:=(Result shl 4)+(w-48);
+      65..70,97..102: Result:=(Result shl 4)+(w-55)
       else begin Result:=0; break end
     end;
   end;
@@ -82,7 +82,7 @@ var
   PkgKey, CtrKey, WorkbinKey: array [0..15] of Byte;
   ItemCnt, NumOfFiles, NameOffset, NameSize, ListPos, HeadSize, SkuFlags, LongWord1: LongWord;
   DataOffset, ItemOffset, ItemSize, SomeFlags, Int641: Int64;
-  KeyType, ItemFlags: Byte;
+  KeyType: Byte;
   LicenseFlags: Word;
   utf8s: UTF8String;
   WorkbinExist: Boolean;
@@ -90,7 +90,7 @@ var
   i: Integer;
 begin
   try
-    Writeln('PS Vita PKG Unpacker v1.1 by RikuKH3');
+    Writeln('PS Vita PKG Unpacker v1.2 by RikuKH3');
     Writeln('------------------------------------');
     if ParamCount=0 then begin Writeln('Usage: '+ExtractFileName(ParamStr(0))+' <input pkg file> [output folder] [-key=FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]'); Readln; exit end;
 
@@ -180,11 +180,9 @@ begin
           ListPos := 1;
           NumOfFiles := 0;
           for LongWord1:=0 to ItemCnt-1 do begin
-            MemoryStream1.Position := LongWord1 * $20 + $1B;
-            MemoryStream1.ReadBuffer(ItemFlags, 1);
-            case ItemFlags of
-              0,1,3,14..17,19,21,22: Inc(NumOfFiles);
-            end;
+            MemoryStream1.Position := LongWord1 * $20 + $10;
+            MemoryStream1.ReadBuffer(ItemSize, 8);
+            if ItemSize>0 then Inc(NumOfFiles);
           end;
           s := IntToStr(NumOfFiles);
           i := Length(s);
@@ -201,30 +199,25 @@ begin
             ItemOffset := Swap64(ItemOffset);
             MemoryStream1.ReadBuffer(ItemSize, 8);
             ItemSize := Swap64(ItemSize);
-            MemoryStream1.Position := MemoryStream1.Position + 3;
-            MemoryStream1.ReadBuffer(ItemFlags, 1);
 
-            case ItemFlags of
-              4,18: begin
-                MemoryStream1.Position := NameOffset;
-                SetLength(utf8s, NameSize);
-                MemoryStream1.ReadBuffer(utf8s[1], NameSize);
-                CreateDir(OutFolder+string(utf8s));
-              end;
-              0,1,3,14..17,19,21,22: begin
-                MemoryStream1.Position := NameOffset;
-                SetLength(utf8s, NameSize);
-                MemoryStream1.ReadBuffer(utf8s[1], NameSize);
-                FileStream1.Position := DataOffset + ItemOffset;
-                s2 := IntToStr(ListPos);
-                s2 := StringOfChar('0', i-Length(s2)) + s2;
-                Writeln('['+s2+'/'+s+'] ', utf8s);
-                Inc(ListPos);
-                FileStream2:=TFileStream.Create(OutFolder+string(utf8s), fmCreate or fmOpenWrite or fmShareDenyWrite);
-                try
-                  Cipher.DecryptStream(FileStream1, FileStream2, ItemSize);
-                finally FileStream2.Free end;
-              end;
+            if ItemSize=0 then begin
+              MemoryStream1.Position := NameOffset;
+              SetLength(utf8s, NameSize);
+              MemoryStream1.ReadBuffer(utf8s[1], NameSize);
+              CreateDir(OutFolder+string(utf8s));
+            end else begin
+              MemoryStream1.Position := NameOffset;
+              SetLength(utf8s, NameSize);
+              MemoryStream1.ReadBuffer(utf8s[1], NameSize);
+              FileStream1.Position := DataOffset + ItemOffset;
+              s2 := IntToStr(ListPos);
+              s2 := StringOfChar('0', i-Length(s2)) + s2;
+              Writeln('['+s2+'/'+s+'] ', utf8s);
+              Inc(ListPos);
+              FileStream2:=TFileStream.Create(OutFolder+string(utf8s), fmCreate or fmOpenWrite or fmShareDenyWrite);
+              try
+                Cipher.DecryptStream(FileStream1, FileStream2, ItemSize);
+              finally FileStream2.Free end;
             end;
           end;
         finally Cipher.Free end;
