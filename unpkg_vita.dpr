@@ -86,11 +86,11 @@ var
   LicenseFlags: Word;
   utf8s: UTF8String;
   WorkbinExist: Boolean;
-  OutFolder, s, s2: String;
+  OutFolder, s, s2, s3: String;
   i: Integer;
 begin
   try
-    Writeln('PS Vita PKG Unpacker v1.2 by RikuKH3');
+    Writeln('PS Vita PKG Unpacker v1.3 by RikuKH3');
     Writeln('------------------------------------');
     if ParamCount=0 then begin Writeln('Usage: '+ExtractFileName(ParamStr(0))+' <input pkg file> [output folder] [-key=FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]'); Readln; exit end;
 
@@ -182,12 +182,10 @@ begin
           for LongWord1:=0 to ItemCnt-1 do begin
             MemoryStream1.Position := LongWord1 * $20 + $10;
             MemoryStream1.ReadBuffer(ItemSize, 8);
-            if ItemSize>0 then Inc(NumOfFiles);
+            if ItemSize<>0 then Inc(NumOfFiles);
           end;
           s := IntToStr(NumOfFiles);
           i := Length(s);
-
-          ForceDirectories(OutFolder);
 
           for LongWord1:=0 to ItemCnt-1 do begin
             MemoryStream1.Position := LongWord1 * $20;
@@ -200,21 +198,19 @@ begin
             MemoryStream1.ReadBuffer(ItemSize, 8);
             ItemSize := Swap64(ItemSize);
 
-            if ItemSize=0 then begin
+            if ItemSize>0 then begin
               MemoryStream1.Position := NameOffset;
               SetLength(utf8s, NameSize);
               MemoryStream1.ReadBuffer(utf8s[1], NameSize);
-              CreateDir(OutFolder+string(utf8s));
-            end else begin
-              MemoryStream1.Position := NameOffset;
-              SetLength(utf8s, NameSize);
-              MemoryStream1.ReadBuffer(utf8s[1], NameSize);
+              s3 := StringReplace(string(utf8s),'/','\',[rfReplaceAll]);
+              ForceDirectories(OutFolder+ExtractFilePath(s3));
+
               FileStream1.Position := DataOffset + ItemOffset;
               s2 := IntToStr(ListPos);
               s2 := StringOfChar('0', i-Length(s2)) + s2;
-              Writeln('['+s2+'/'+s+'] ', utf8s);
+              Writeln('['+s2+'/'+s+'] ', s3);
               Inc(ListPos);
-              FileStream2:=TFileStream.Create(OutFolder+string(utf8s), fmCreate or fmOpenWrite or fmShareDenyWrite);
+              FileStream2:=TFileStream.Create(OutFolder+s3, fmCreate or fmOpenWrite or fmShareDenyWrite);
               try
                 Cipher.DecryptStream(FileStream1, FileStream2, ItemSize);
               finally FileStream2.Free end;
