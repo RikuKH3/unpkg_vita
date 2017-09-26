@@ -357,6 +357,7 @@ begin
               finally MemoryStream1.Free end;
             end;
           end;
+          DeleteFile(OutFolder+'sce_sys\package\digs.bin');
         end;
         $6361: if DirectoryExists(OutFolder+'sce_sys\package\') then TDirectory.Delete(OutFolder+'sce_sys\package\', True);
       end;
