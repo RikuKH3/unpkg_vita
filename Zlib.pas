@@ -1906,15 +1906,15 @@ type
 const
   {** return code messages **************************************************}
   _z_errmsg: array [0..9] of MarshaledAString = (
-    'need dictionary',      // Z_NEED_DICT      (2)  //do not localize
-    'stream end',           // Z_STREAM_END     (1)  //do not localize
-    '',                     // Z_OK             (0)  //do not localize
-    'file error',           // Z_ERRNO          (-1) //do not localize
-    'stream error',         // Z_STREAM_ERROR   (-2) //do not localize
-    'data error',           // Z_DATA_ERROR     (-3) //do not localize
-    'insufficient memory',  // Z_MEM_ERROR      (-4) //do not localize
-    'buffer error',         // Z_BUF_ERROR      (-5) //do not localize
-    'incompatible version', // Z_VERSION_ERROR  (-6) //do not localize
+    'need dictionary',         // Z_NEED_DICT      (2)  //do not localize
+    'stream end',              // Z_STREAM_END     (1)  //do not localize
+    '',                        // Z_OK             (0)  //do not localize
+    'Error: Invalid zRIF key', // Z_ERRNO          (-1) //do not localize
+    'Error: Invalid zRIF key', // Z_STREAM_ERROR   (-2) //do not localize
+    'Error: Invalid zRIF key', // Z_DATA_ERROR     (-3) //do not localize
+    'Error: Invalid zRIF key', // Z_MEM_ERROR      (-4) //do not localize
+    'Error: Invalid zRIF key', // Z_BUF_ERROR      (-5) //do not localize
+    'Error: Invalid zRIF key', // Z_VERSION_ERROR  (-6) //do not localize
     ''                                               //do not localize
     );
 
