@@ -230,12 +230,6 @@ begin
         SetLength(ContentID, $24);
         MemoryStream1.ReadBuffer(ContentID[1], $24);
 
-        if WorkbinExist=2 then begin
-          SetLength(utf8s, $24);
-          for i:=1 to 36 do utf8s[i]:=UTF8Char(Workbin[i+15]);
-          if not (utf8s=ContentID) then begin Writeln('Error: Key doesn'#39't match'); Readln; exit end
-        end;
-
         case Category of
           $6467: OutFolder := OutFolder+'\app\'+string(utf8s)+'\';   // gd
           $7067: OutFolder := OutFolder+'\patch\'+string(utf8s)+'\'; // gp
@@ -243,6 +237,12 @@ begin
             DlcFolder := OutFolder+'\bgdl\t\00000001\';
             OutFolder := DlcFolder+string(utf8s)+'\'
           end else OutFolder := OutFolder+'\'+string(utf8s)+'\'
+        end;
+
+        if WorkbinExist=2 then begin
+          SetLength(utf8s, $24);
+          for i:=1 to 36 do utf8s[i]:=UTF8Char(Workbin[i+15]);
+          if not (utf8s=ContentID) then begin Writeln('Error: Key doesn'#39't match'); Readln; exit end
         end;
 
         MemoryStream1.Position := $14;
