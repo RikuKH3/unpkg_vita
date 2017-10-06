@@ -1,4 +1,4 @@
-program Project1;
+program unpkg_vita;
 
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
