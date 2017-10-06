@@ -170,7 +170,7 @@ var
   MemoryStream1, MemoryStream2: TMemoryStream;
   PkgKey, CtrKey: array [0..15] of Byte;
   ItemCnt, NumOfFiles, NameOffset, NameSize, ListPos, HeadSize, SkuFlags, LongWord1: LongWord;
-  DataOffset, ItemOffset, ItemSize, SomeFlags, Int641: Int64;
+  DataOffset, DataSize, ItemOffset, ItemSize, SomeFlags, Int641: Int64;
   KeyType: Byte;
   LicenseFlags, Category: Word;
   utf8s, ContentID, Title: UTF8String;
@@ -180,7 +180,7 @@ var
   ZDecompressionStream1: TZDecompressionStream;
 begin
   try
-    Writeln('PS Vita PKG Unpacker v1.6 by RikuKH3');
+    Writeln('PS Vita PKG Unpacker v1.7 by RikuKH3');
     Writeln('------------------------------------');
     WorkbinExist := 0;
     case ParamCount of
@@ -204,9 +204,14 @@ begin
 
     FileStream1:=TFileStream.Create(ParamStr(1), fmOpenRead or fmShareDenyWrite);
     try
+      FileStream1.Read(LongWord1, 4);
+      if LongWord1<>$474B507F then begin Writeln('Error: Input file is not a valid PKG file'); Readln; exit end;
+
       FileStream1.Position := $20;
       FileStream1.ReadBuffer(DataOffset, 8);
       DataOffset := Swap64(DataOffset);
+      FileStream1.ReadBuffer(DataSize, 8);
+      DataSize := Swap64(DataSize);
 
       FileStream1.Position := 0;
       MemoryStream1:=TMemoryStream.Create;
@@ -343,10 +348,10 @@ begin
       case Category of
         $6467,$7067,$6361: begin // app, patch, dlc
           if DirectoryExists(OutFolder+'sce_sys\package\') then begin
-            FileStream1.Position := FileStream1.Size - $1E0;
+            FileStream1.Position := DataOffset + DataSize;
             FileStream2:=TFileStream.Create(OutFolder+'sce_sys\package\tail.bin', fmCreate or fmOpenWrite or fmShareDenyWrite);
             try
-              FileStream2.CopyFrom(FileStream1, $1E0);
+              FileStream2.CopyFrom(FileStream1, FileStream1.Size-FileStream1.Position);
             finally FileStream2.Free end;
 
             FileStream1.Position := 0;
