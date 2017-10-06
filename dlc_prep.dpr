@@ -1,4 +1,4 @@
-﻿program Project1;
+program dlc_prep;
 
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
