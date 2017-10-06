@@ -1,4 +1,4 @@
-program unpkg_vita;
+program Project1;
 
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
@@ -46,12 +46,13 @@ begin
   end;
 end;
 
-function ProcessSFO(MemoryStream1: TMemoryStream): Word;
+function ProcessSFO(MemoryStream1: TMemoryStream; var Title: UTF8String): Word;
 var
   NameStart, ValueStart, NumOfEntries, LongWord1, InitPos: LongWord;
   Int641: Int64;
-  Word1: Word;
+  Word1, ValueLength: Word;
 begin
+  SetLength(Title, 6);
   InitPos := MemoryStream1.Position - 8;
   MemoryStream1.ReadBuffer(NameStart, 4);
   NameStart := NameStart + InitPos;
@@ -64,12 +65,27 @@ begin
     MemoryStream1.ReadBuffer(Word1, 2);
     MemoryStream1.Position := Word1 + NameStart;
     MemoryStream1.ReadBuffer(Int641, 8);
-    if Int641=$59524F4745544143 then break;
+    if Int641=$59524F4745544143 then break;      // CATEGORY
   end;
   MemoryStream1.Position := ($10 * LongWord1) + $20 + InitPos;
   MemoryStream1.ReadBuffer(LongWord1, 4);
   MemoryStream1.Position := LongWord1 + ValueStart;
   MemoryStream1.ReadBuffer(Result, 2);
+
+  for LongWord1:=0 to NumOfEntries-1 do begin
+    MemoryStream1.Position := ($10 * LongWord1) + $14 + InitPos;
+    MemoryStream1.ReadBuffer(Word1, 2);
+    MemoryStream1.Position := MemoryStream1.Position + 2;
+    MemoryStream1.ReadBuffer(ValueLength, 2);
+    MemoryStream1.Position := Word1 + NameStart;
+    MemoryStream1.ReadBuffer(Title[1], 6);
+    if Title='TITLE'#0 then break;
+  end;
+  MemoryStream1.Position := ($10 * LongWord1) + $20 + InitPos;
+  MemoryStream1.ReadBuffer(LongWord1, 4);
+  MemoryStream1.Position := LongWord1 + ValueStart;
+  SetLength(Title, ValueLength);
+  MemoryStream1.ReadBuffer(Title[1], ValueLength);
 end;
 
 function CheckKey(const ParamNum: LongWord): Boolean;
@@ -127,6 +143,27 @@ const
   RifHdr: array[0..15] of Byte = (0,1,0,1,0,1,0,2,239,205,171,137,103,69,35,1);
   PsfMagic: Int64 = $10146535000;
   ZeroByte: Byte = 0;
+  PDB1: array[0..209] of Byte = (0,0,0,0,100,0,0,0,4,0,0,0,4,0,0,0,0,0,0,0,101,
+  0,0,0,4,0,0,0,4,0,0,0,2,0,0,0,102,0,0,0,1,0,0,0,1,0,0,0,0,107,0,0,0,4,0,0,0,4,
+  0,0,0,7,0,0,0,104,0,0,0,4,0,0,0,4,0,0,0,0,0,0,0,108,0,0,0,4,0,0,0,4,0,0,0,1,0,
+  0,0,109,0,0,0,4,0,0,0,4,0,0,0,4,0,0,0,110,0,0,0,1,0,0,0,1,0,0,0,0,112,0,0,0,1,
+  0,0,0,1,0,0,0,1,113,0,0,0,1,0,0,0,1,0,0,0,1,114,0,0,0,4,0,0,0,4,0,0,0,0,0,0,0,
+  115,0,0,0,1,0,0,0,1,0,0,0,0,116,0,0,0,1,0,0,0,1,0,0,0,0,111,0,0,0,4,0,0,0,4,0,
+  0,0,0,0,0,0);
+  PDB2: array[0..184] of Byte = (230,0,0,0,29,0,0,0,29,0,0,0,32,32,32,32,32,32,
+  32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0,217,0,0,0,
+  37,0,0,0,37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,218,0,0,0,1,0,0,0,1,0,0,0,1,206,0,0,0,8,0,0,0,8,0,0,0,0,144,1,0,
+  0,0,0,0,208,0,0,0,8,0,0,0,8,0,0,0,0,144,1,0,0,0,0,0,204,0,0,0,30,0,0,0,30,0,0,
+  0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,
+  32,32,32,32,0);
+  PDB3: array[0..204] of Byte = (232,0,0,0,120,0,0,0,120,0,0,0,2,0,0,0,22,0,0,0,
+  14,0,0,128,13,0,0,0,16,15,0,0,0,0,0,0,0,144,1,0,0,0,0,0,0,144,1,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  205,0,0,0,1,0,0,0,1,0,0,0,0,236,0,0,0,4,0,0,0,4,0,0,0,199,8,120,149,237,0,0,0,
+  32,0,0,0,32,0,0,0,191,31,176,182,101,19,244,6,161,144,115,57,24,86,53,208,34,
+  131,37,93,67,148,147,158,117,166,119,106,126,3,133,198);
 var
   Cipher: TDCP_rijndael;
   FileStream1, FileStream2: TFileStream;
@@ -136,14 +173,14 @@ var
   DataOffset, ItemOffset, ItemSize, SomeFlags, Int641: Int64;
   KeyType: Byte;
   LicenseFlags, Category: Word;
-  utf8s: UTF8String;
-  OutFolder, s, s2, s3: String;
+  utf8s, ContentID, Title: UTF8String;
+  OutFolder, DlcFolder, s, s2, s3: String;
   i: Integer;
   BytesStream1: TBytesStream;
   ZDecompressionStream1: TZDecompressionStream;
 begin
   try
-    Writeln('PS Vita PKG Unpacker v1.4 by RikuKH3');
+    Writeln('PS Vita PKG Unpacker v1.5 by RikuKH3');
     Writeln('------------------------------------');
     WorkbinExist := 0;
     case ParamCount of
@@ -183,24 +220,29 @@ begin
 
         Category := 0;
         if Int641=PsfMagic then begin
-          Category:=ProcessSFO(MemoryStream1);
+          Category:=ProcessSFO(MemoryStream1, Title);
         end;
 
         MemoryStream1.Position := $37;
         SetLength(utf8s, 9);
         MemoryStream1.ReadBuffer(utf8s[1], 9);
+        MemoryStream1.Position := $30;
+        SetLength(ContentID, $24);
+        MemoryStream1.ReadBuffer(ContentID[1], $24);
+
+        if WorkbinExist=2 then begin
+          SetLength(utf8s, $24);
+          for i:=1 to 36 do utf8s[i]:=UTF8Char(Workbin[i+15]);
+          if not (utf8s=ContentID) then begin Writeln('Error: Key doesn'#39't match'); Readln; exit end
+        end;
 
         case Category of
           $6467: OutFolder := OutFolder+'\app\'+string(utf8s)+'\';   // gd
           $7067: OutFolder := OutFolder+'\patch\'+string(utf8s)+'\'; // gp
-          $6361: begin                                               // ac
-            OutFolder := OutFolder+'\addcont\'+string(utf8s)+'\';
-            MemoryStream1.Position := $44;
-            SetLength(utf8s, $10);
-            MemoryStream1.ReadBuffer(utf8s[1], $10);
-            OutFolder := OutFolder+string(utf8s)+'\';
-          end
-          else OutFolder := OutFolder+'\'+string(utf8s)+'\'
+          $6361: begin
+            DlcFolder := OutFolder+'\bgdl\t\00000001\';
+            OutFolder := DlcFolder+string(utf8s)+'\'
+          end else OutFolder := OutFolder+'\'+string(utf8s)+'\'
         end;
 
         MemoryStream1.Position := $14;
@@ -297,7 +339,7 @@ begin
       finally MemoryStream1.Free end;
 
       case Category of
-        $6467,$7067: begin // app, patch
+        $6467,$7067,$6361: begin // app, patch, dlc
           if DirectoryExists(OutFolder+'sce_sys\package\') then begin
             FileStream1.Position := FileStream1.Size - $1E0;
             FileStream2:=TFileStream.Create(OutFolder+'sce_sys\package\tail.bin', fmCreate or fmOpenWrite or fmShareDenyWrite);
@@ -313,7 +355,7 @@ begin
           end;
 
           case WorkbinExist of
-            1: if Category=$6467 then begin // app
+            1: if (Category=$6467) or (Category=$6361) then begin // app, dlc
               SkuFlags := 0;
               LicenseFlags := $200;
               SomeFlags := 0;
@@ -349,7 +391,7 @@ begin
                 MemoryStream1.SaveToFile(OutFolder+'sce_sys\package\work.bin');
               finally MemoryStream1.Free end;
             end;
-            2: if Category=$6467 then begin
+            2: if (Category=$6467) or (Category=$6361) then begin // app, dlc
               MemoryStream1:=TMemoryStream.Create;
               try
                 MemoryStream1.WriteBuffer(Workbin[0], 512);
@@ -357,9 +399,61 @@ begin
               finally MemoryStream1.Free end;
             end;
           end;
+
+          if Category=$6361 then begin // dlc
+            MemoryStream1:=TMemoryStream.Create;
+            try
+              MemoryStream1.SaveToFile(DlcFolder+'f0.pdb');
+              for i:=0 to 767 do MemoryStream1.WriteBuffer(ZeroByte, 1);
+              MemoryStream1.SaveToFile(OutFolder+'sce_sys\package\stat.bin');
+              MemoryStream1.Clear;
+              MemoryStream1.WriteBuffer(PDB1[0], 210);
+              LongWord1 := $69;
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              LongWord1 := Length(Title);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(Title[1], LongWord1);
+              LongWord1 := $CB;
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              utf8s := 'pkg.pkg'#0;
+              LongWord1 := Length(utf8s);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
+              LongWord1 := $CA;
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              utf8s := 'https://example.com/pkg.pkg'#0;
+              LongWord1 := Length(utf8s);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
+              LongWord1 := $6A;
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              utf8s := 'ux0:bgdl/t/00000001/icon.png'#0;
+              LongWord1 := Length(utf8s);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
+              MemoryStream1.WriteBuffer(PDB2[0], 185);
+              LongWord1 := $DC;
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              utf8s := Copy(ContentID,8,9)+#0;
+              LongWord1 := Length(utf8s);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(LongWord1, 4);
+              MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
+              MemoryStream1.WriteBuffer(PDB3[0], 205);
+              MemoryStream1.Position := MemoryStream1.Position - $8D;
+              MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
+              MemoryStream1.SaveToFile(DlcFolder+'d0.pdb');
+              MemoryStream1.Position := $20;
+              MemoryStream1.WriteBuffer(ZeroByte, 1);
+              MemoryStream1.SaveToFile(DlcFolder+'d1.pdb');
+            finally MemoryStream1.Free end;
+          end;
           DeleteFile(OutFolder+'sce_sys\package\digs.bin');
         end;
-        $6361: if DirectoryExists(OutFolder+'sce_sys\package\') then TDirectory.Delete(OutFolder+'sce_sys\package\', True);
       end;
     finally FileStream1.Free end;
     DeleteFile(OutFolder+'sce_pfs\pflist');
