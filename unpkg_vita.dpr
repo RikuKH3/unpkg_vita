@@ -1,4 +1,4 @@
-program unpkg_vita;
+program Project1;
 
 {$WEAKLINKRTTI ON}
 {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
@@ -234,9 +234,9 @@ begin
           $6467: OutFolder := OutFolder+'\app\'+string(utf8s)+'\';   // gd
           $7067: OutFolder := OutFolder+'\patch\'+string(utf8s)+'\'; // gp
           $6361: begin
+            s := OutFolder+'\bgdl\t\';
             i:=0;
-            repeat Inc(i) until DirectoryExists(OutFolder+'\bgdl\t\'+LowerCase(IntToHex(i,8)))=False;
-            DlcFolder := OutFolder+'\bgdl\t\'+LowerCase(IntToHex(i,8))+'\';
+            repeat Inc(i); DlcFolder:=s+LowerCase(IntToHex(i,8))+'\' until DirectoryExists(DlcFolder)=False;
             OutFolder := DlcFolder+string(utf8s)+'\'
           end else OutFolder := OutFolder+'\'+string(utf8s)+'\'
         end;
@@ -459,5 +459,5 @@ begin
       end;
     finally FileStream1.Free end;
     DeleteFile(OutFolder+'sce_pfs\pflist');
-  except on E: Exception do begin Writeln(E.Message); Readln end end;
+  except on E: Exception do begin Writeln('Error: '+E.Message); Readln end end;
 end.
