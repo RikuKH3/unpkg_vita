@@ -125,5 +125,5 @@ begin
         DecodeKey(s);
       end else EncodeKey;
     end else DecodeKey(ParamStr(1));
-  except on E: Exception do begin Writeln(E.Message); Readln end end;
+  except on E: Exception do begin Writeln('Error: '+E.Message); Readln end end;
 end.
