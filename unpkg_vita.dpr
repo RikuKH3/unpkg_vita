@@ -180,16 +180,16 @@ var
   ZDecompressionStream1: TZDecompressionStream;
 begin
   try
-    Writeln('PS Vita PKG Unpacker v1.5 by RikuKH3');
+    Writeln('PS Vita PKG Unpacker v1.6 by RikuKH3');
     Writeln('------------------------------------');
     WorkbinExist := 0;
     case ParamCount of
       0: begin Writeln('Usage: '+ExtractFileName(ParamStr(0))+' <input pkg file> [output folder] [-key=FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF]'); Readln; exit end;
-      1: OutFolder:=ExpandFileName(Copy(ParamStr(1),1,Length(ParamStr(1))-Length(ExtractFileExt(ParamStr(1)))));
+      1: OutFolder:=ExtractFileDir(ExpandFileName(ParamStr(1)));
       2: begin
         if Pos('-key=', LowerCase(ParamStr(2)))=1 then begin
           if CheckKey(2)=False then begin Readln; exit end;
-          OutFolder:=ExpandFileName(Copy(ParamStr(1),1,Length(ParamStr(1))-Length(ExtractFileExt(ParamStr(1)))));
+          OutFolder:=ExtractFileDir(ExpandFileName(ParamStr(1)));
         end else begin
           OutFolder := ExpandFileName(ParamStr(2));
           repeat if OutFolder[Length(OutFolder)]='\' then SetLength(OutFolder, Length(OutFolder)-1) until not (OutFolder[Length(OutFolder)]='\');
@@ -234,7 +234,9 @@ begin
           $6467: OutFolder := OutFolder+'\app\'+string(utf8s)+'\';   // gd
           $7067: OutFolder := OutFolder+'\patch\'+string(utf8s)+'\'; // gp
           $6361: begin
-            DlcFolder := OutFolder+'\bgdl\t\00000001\';
+            i:=0;
+            repeat Inc(i) until DirectoryExists(OutFolder+'\bgdl\t\'+LowerCase(IntToHex(i,8)))=False;
+            DlcFolder := OutFolder+'\bgdl\t\'+LowerCase(IntToHex(i,8))+'\';
             OutFolder := DlcFolder+string(utf8s)+'\'
           end else OutFolder := OutFolder+'\'+string(utf8s)+'\'
         end;
@@ -430,7 +432,7 @@ begin
               MemoryStream1.WriteBuffer(utf8s[1], LongWord1);
               LongWord1 := $6A;
               MemoryStream1.WriteBuffer(LongWord1, 4);
-              utf8s := 'ux0:bgdl/t/00000001/icon.png'#0;
+              utf8s := 'ux0:bgdl/t/'+UTF8String(Copy(DlcFolder, Length(DlcFolder)-8, 8))+'/icon.png'#0;
               LongWord1 := Length(utf8s);
               MemoryStream1.WriteBuffer(LongWord1, 4);
               MemoryStream1.WriteBuffer(LongWord1, 4);
