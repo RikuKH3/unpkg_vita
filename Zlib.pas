@@ -1909,12 +1909,12 @@ const
     'need dictionary',         // Z_NEED_DICT      (2)  //do not localize
     'stream end',              // Z_STREAM_END     (1)  //do not localize
     '',                        // Z_OK             (0)  //do not localize
-    'Error: Invalid zRIF key', // Z_ERRNO          (-1) //do not localize
-    'Error: Invalid zRIF key', // Z_STREAM_ERROR   (-2) //do not localize
-    'Error: Invalid zRIF key', // Z_DATA_ERROR     (-3) //do not localize
-    'Error: Invalid zRIF key', // Z_MEM_ERROR      (-4) //do not localize
-    'Error: Invalid zRIF key', // Z_BUF_ERROR      (-5) //do not localize
-    'Error: Invalid zRIF key', // Z_VERSION_ERROR  (-6) //do not localize
+    'Invalid zRIF key', // Z_ERRNO          (-1) //do not localize
+    'Invalid zRIF key', // Z_STREAM_ERROR   (-2) //do not localize
+    'Invalid zRIF key', // Z_DATA_ERROR     (-3) //do not localize
+    'Invalid zRIF key', // Z_MEM_ERROR      (-4) //do not localize
+    'Invalid zRIF key', // Z_BUF_ERROR      (-5) //do not localize
+    'Invalid zRIF key', // Z_VERSION_ERROR  (-6) //do not localize
     ''                                               //do not localize
     );
 
