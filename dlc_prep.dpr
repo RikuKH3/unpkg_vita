@@ -8,7 +8,7 @@ program dlc_prep;
 {$R *.res}
 
 uses
-  Windows, System.SysUtils, System.Classes, IOUtils;
+  Windows, System.SysUtils, System.Classes, System.IOUtils, System.Types;
 
 {$SETPEFLAGS IMAGE_FILE_RELOCS_STRIPPED}
 
@@ -60,10 +60,11 @@ const
 var
   MemoryStream1: TMemoryStream;
   FileStream1: TFileStream;
+  InputFiles: TStringDynArray;
   LongWord1, LongWord2, SfoNameStart, SfoValueStart, SfoNumOfEntries: LongWord;
   Word1, Category: Word;
   utf8s, TitleID, ContentID, Title: UTF8String;
-  s, s2, TitleNum, InputDir, OutDir: String;
+  s, s2, s3, s4, TitleNum, InputDir, OutDir: String;
 begin
   try
     Writeln('PS Vita DLC Installation Prep Tool v1.0 by RikuKH3');
@@ -140,10 +141,21 @@ begin
 
       MemoryStream1.Position := 0;
       s2 := OutDir+String(TitleID);
-      TDirectory.Copy(ExtractFilePath(s), s2);
+
+      s3 := ExtractFilePath(s);
+      LongWord2 := Length(s3);
+      InputFiles:=TDirectory.GetFiles(s3, '*', TSearchOption.soAllDirectories);
+      for LongWord1:=0 to Length(InputFiles)-1 do begin
+        if not (InputFiles[LongWord1]=s+'\package.bin') then begin
+          s3 := s2 + Copy(InputFiles[LongWord1],LongWord2);
+          ForceDirectories(ExtractFileDir(s3));
+          TFile.Copy(InputFiles[LongWord1], s3, True);
+        end;
+      end;
+
       s2 := s2+'\sce_sys\package';
-      DeleteFile(s2+'.bin');
       CreateDir(s2);
+
       FileStream1:=TFileStream.Create(s2+'\work.bin', fmCreate or fmOpenWrite or fmShareDenyWrite);
       try
         FileStream1.CopyFrom(MemoryStream1, MemoryStream1.Size)
