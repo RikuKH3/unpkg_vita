@@ -44,7 +44,6 @@ begin
     MemoryStream1.SaveToFile(ExtractFilePath(ParamStr(0))+'work.bin');
     Writeln('');
     Writeln(#39'work.bin'#39' file created.');
-    Readln;
   finally MemoryStream1.Free end;
 end;
 
@@ -103,7 +102,6 @@ begin
   Writeln('zRIF: ', s);
   Writeln('');
   Writeln(#39+s3+'.txt'#39' file created.');
-  Readln;
 end;
 
 var
